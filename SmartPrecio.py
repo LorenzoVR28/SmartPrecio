@@ -1,132 +1,129 @@
 import streamlit as st
 import pandas as pd
 
-# Configuración
+# CONFIG
 st.set_page_config(page_title="SmartPrecio", page_icon="💰", layout="centered")
 
-# Título
+# HEADER
 st.title("💰 SmartPrecio")
-st.markdown("Descubre cuánto deberías cobrar para ganar más sin perder clientes.")
+st.markdown("### Deja de adivinar precios. Empieza a ganar más.")
+
+st.markdown(
+"Optimiza cuánto cobrar y descubre cuánto podrías ganar en segundos."
+)
 
 st.divider()
 
 # =========================
 # INPUTS
 # =========================
-st.header("🧮 Calculadora de Precio")
+st.header("📦 Tu producto")
 
 col1, col2 = st.columns(2)
 
 with col1:
-    costo = st.number_input("Costo del producto (S/)", min_value=0.0, format="%.2f")
+    costo = st.number_input("¿Cuánto te cuesta tu producto? (S/)", min_value=0.0, format="%.2f")
 
 with col2:
-    margen = st.number_input("Margen deseado (%)", min_value=0.0, format="%.2f")
+    precio_actual = st.number_input("¿A cuánto lo vendes actualmente? (S/)", min_value=0.0, format="%.2f")
 
-# =========================
-# RESULTADOS
-# =========================
-if costo > 0:
-    precio = costo * (1 + margen / 100)
-    ganancia = precio - costo
+margen = st.slider("¿Qué margen de ganancia quieres (%)?", 0, 100, 40)
 
-    st.subheader("📊 Resultados")
+cantidad = st.number_input("¿Cuántas unidades vendes al día?", min_value=0)
 
-    col1, col2 = st.columns(2)
-
-    col1.metric("💵 Precio de venta", f"S/ {precio:.2f}")
-    col2.metric("📈 Ganancia por unidad", f"S/ {ganancia:.2f}")
-
-    # Mensajes inteligentes
-    st.subheader("🧠 Análisis inteligente")
-
-    if margen < 20:
-        st.warning("⚠️ Margen muy bajo. Estás ganando poco.")
-    elif 20 <= margen <= 40:
-        st.info("ℹ️ Margen aceptable, pero mejorable.")
-    elif 40 < margen <= 70:
-        st.success("✅ Buen margen.")
-    else:
-        st.warning("⚠️ Margen muy alto. Podrías perder clientes.")
+dias = st.slider("Días a simular", 1, 30, 30)
 
 st.divider()
 
 # =========================
-# SIMULADOR
+# LÓGICA
 # =========================
-st.header("📈 Simulador de Ganancias")
-
-cantidad = st.number_input("Cantidad vendida por día", min_value=0)
-dias = st.slider("Días a simular", 1, 30, 30)
-
 if costo > 0 and cantidad > 0:
-    ganancia_dia = ganancia * cantidad
+
+    precio_sugerido = costo * (1 + margen / 100)
+    ganancia_unitaria = precio_sugerido - costo
+    ganancia_dia = ganancia_unitaria * cantidad
     ganancia_mes = ganancia_dia * dias
 
-    col1, col2 = st.columns(2)
-
-    col1.metric("💰 Ganancia diaria", f"S/ {ganancia_dia:.2f}")
-    col2.metric("📅 Ganancia total", f"S/ {ganancia_mes:.2f}")
-
-    # =========================
-    # COMPARADOR
-    # =========================
-    st.subheader("⚖️ Comparación de escenarios")
-
-    precio_actual = st.number_input("Tu precio actual (S/)", min_value=0.0, format="%.2f")
-
+    # ACTUAL
     if precio_actual > 0:
         ganancia_actual = (precio_actual - costo) * cantidad * dias
-        diferencia = ganancia_mes - ganancia_actual
+    else:
+        ganancia_actual = 0
 
-        col1, col2 = st.columns(2)
+    diferencia = ganancia_mes - ganancia_actual
 
-        col1.metric("💸 Ganancia actual", f"S/ {ganancia_actual:.2f}")
-        col2.metric("🚀 Ganancia optimizada", f"S/ {ganancia_mes:.2f}", delta=f"S/ {diferencia:.2f}")
+    # =========================
+    # KPIs (TARJETAS)
+    # =========================
+    st.header("📊 Resultados clave")
 
-        # =========================
-        # RESUMEN QUE VENDE 🔥
-        # =========================
-        st.subheader("📊 Resumen")
+    col1, col2, col3 = st.columns(3)
 
+    col1.metric("💵 Precio sugerido", f"S/ {precio_sugerido:.2f}")
+    col2.metric("📈 Ganancia mensual", f"S/ {ganancia_mes:.2f}")
+    col3.metric("🧾 Ganancia por unidad", f"S/ {ganancia_unitaria:.2f}")
+
+    # =========================
+    # ALERTA PRINCIPAL
+    # =========================
+    st.subheader("🧠 Análisis")
+
+    if precio_actual > 0:
         if diferencia > 0:
             st.success(f"🚀 Podrías ganar S/ {diferencia:.2f} MÁS al mes ajustando tu precio.")
         elif diferencia < 0:
             st.warning(f"⚠️ Estás perdiendo S/ {abs(diferencia):.2f} al mes con tu precio actual.")
         else:
-            st.info("ℹ️ Tu precio actual ya es óptimo.")
-
-        # =========================
-        # GRÁFICA SIMPLE
-        # =========================
-        st.subheader("📉 Visualización")
-
-        data = pd.DataFrame({
-            "Escenario": ["Actual", "Optimizado"],
-            "Ganancia": [ganancia_actual, ganancia_mes]
-        })
-
-        st.bar_chart(data.set_index("Escenario"))
+            st.info("Tu precio actual ya es bastante bueno.")
 
     # =========================
-    # RECOMENDACIÓN FINAL
+    # SIMULADOR
     # =========================
-    st.subheader("🧠 Recomendación")
+    st.subheader("🎯 Simulación: ¿y si subes el precio?")
 
-    if ganancia_dia < 50:
-        st.warning("⚠️ Ganancias bajas. Sube precio o vende más.")
-    elif 50 <= ganancia_dia <= 200:
-        st.info("ℹ️ Ganancias moderadas.")
+    incremento = st.slider("Subir precio (%)", 0, 100, 10)
+
+    nuevo_precio = precio_actual * (1 + incremento / 100) if precio_actual > 0 else precio_sugerido
+    nueva_ganancia = (nuevo_precio - costo) * cantidad * dias
+
+    col1, col2 = st.columns(2)
+
+    col1.metric("Nuevo precio", f"S/ {nuevo_precio:.2f}")
+    col2.metric("Nueva ganancia", f"S/ {nueva_ganancia:.2f}")
+
+    # =========================
+    # GRÁFICA
+    # =========================
+    st.subheader("📉 Comparación de ganancias")
+
+    data = pd.DataFrame({
+        "Escenario": ["Actual", "Optimizado"],
+        "Ganancia": [ganancia_actual, ganancia_mes]
+    })
+
+    st.bar_chart(data.set_index("Escenario"))
+
+    # =========================
+    # RESUMEN FINAL (VENDEDOR)
+    # =========================
+    st.subheader("📊 Resumen claro")
+
+    if diferencia > 0:
+        st.success(
+            f"💰 Si ajustas tu precio, podrías ganar aproximadamente S/ {diferencia:.2f} más al mes.\n\n"
+            "👉 Esto significa más ingresos sin necesidad de vender más."
+        )
     else:
-        st.success("🚀 Buen nivel de ganancias.")
+        st.info("Tu estrategia actual es adecuada, pero siempre puedes probar escenarios.")
 
 else:
-    st.info("Ingresa datos para ver resultados.")
+    st.info("👆 Ingresa tus datos para ver cuánto podrías ganar.")
 
 st.divider()
 
-# Footer
+# FOOTER
 st.markdown("### 🚀 Consejo")
-st.markdown("Pequeños cambios en precio o volumen pueden generar grandes diferencias en tus ganancias.")
+st.markdown("Pequeños cambios en tu precio pueden generar grandes cambios en tus ganancias.")
 
-st.caption("SmartPrecio • Herramienta para negocios locales")
+st.caption("SmartPrecio • Herramienta para emprendedores")
