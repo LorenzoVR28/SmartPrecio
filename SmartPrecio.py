@@ -1,67 +1,76 @@
 import streamlit as st
+import pandas as pd
 
-# CONFIGURACIÓN DE PÁGINA
-st.set_page_config(
-    page_title="SmartPrecio",
-    page_icon="💰",
-    layout="wide"
-)
+# CONFIG
+st.set_page_config(page_title="SmartPrecio PRO", page_icon="💰", layout="wide")
 
-# ESTILOS (mejor presentación tipo dashboard)
+# ESTILOS PRO
 st.markdown("""
-    <style>
-    .metric-card {
-        background-color: #111827;
-        padding: 20px;
-        border-radius: 15px;
-        text-align: center;
-        color: white;
-    }
-    .big-text {
-        font-size: 28px;
-        font-weight: bold;
-    }
-    .positive {
-        color: #10B981;
-    }
-    .negative {
-        color: #EF4444;
-    }
-    .warning {
-        background-color: #FEF3C7;
-        padding: 15px;
-        border-radius: 10px;
-        color: #92400E;
-    }
-    .success {
-        background-color: #D1FAE5;
-        padding: 15px;
-        border-radius: 10px;
-        color: #065F46;
-    }
-    </style>
+<style>
+body {
+    background-color: #0f172a;
+}
+.main {
+    background-color: #0f172a;
+}
+.card {
+    background: #1e293b;
+    padding: 25px;
+    border-radius: 20px;
+    color: white;
+    box-shadow: 0px 4px 20px rgba(0,0,0,0.3);
+}
+.metric {
+    font-size: 32px;
+    font-weight: bold;
+}
+.label {
+    color: #94a3b8;
+}
+.highlight {
+    color: #38bdf8;
+}
+.warning {
+    background: #fef3c7;
+    padding: 20px;
+    border-radius: 15px;
+    color: #92400e;
+}
+.success {
+    background: #dcfce7;
+    padding: 20px;
+    border-radius: 15px;
+    color: #065f46;
+}
+</style>
 """, unsafe_allow_html=True)
 
-# TÍTULO
-st.title("💰 SmartPrecio")
-st.subheader("Calcula el precio óptimo de tu producto y maximiza tus ganancias")
+# HEADER
+st.title("💰 SmartPrecio PRO")
+st.caption("Optimiza tu precio y gana más sin complicarte")
 
-# INPUTS
-st.header("📦 Tu producto")
+st.markdown("---")
+
+# INPUTS EN TARJETA
+st.markdown("## 📦 Datos de tu producto")
 
 col1, col2 = st.columns(2)
 
 with col1:
-    costo = st.number_input("¿Cuánto te cuesta tu producto? (S/)", min_value=0.0, value=13.0)
+    costo = st.number_input("Costo del producto (S/)", value=13.0)
 
 with col2:
-    precio_actual = st.number_input("¿A cuánto lo vendes actualmente? (S/)", min_value=0.0, value=30.0)
+    precio_actual = st.number_input("Precio actual (S/)", value=30.0)
 
-margen = st.slider("¿Qué margen de ganancia quieres (%)?", 0, 200, 100)
+col3, col4 = st.columns(2)
 
-unidades = st.number_input("¿Cuántas unidades vendes al día?", min_value=1, value=10)
+with col3:
+    margen = st.slider("Margen deseado (%)", 0, 200, 100)
 
-dias = st.slider("Días a simular", 1, 30, 30)
+with col4:
+    unidades = st.number_input("Ventas por día", value=10)
+
+dias = st.slider("Periodo (días)", 1, 30, 30)
 
 # CÁLCULOS
 precio_sugerido = costo * (1 + margen / 100)
@@ -70,89 +79,90 @@ ganancia_actual = (precio_actual - costo) * unidades * dias
 ganancia_sugerida = (precio_sugerido - costo) * unidades * dias
 
 diferencia = ganancia_sugerida - ganancia_actual
+ganancia_unitaria = precio_sugerido - costo
 
-# RESULTADOS
-st.header("📊 Resultados clave")
+st.markdown("---")
 
-col1, col2, col3 = st.columns(3)
+# DASHBOARD
+st.markdown("## 📊 Dashboard de ganancias")
 
-with col1:
+c1, c2, c3 = st.columns(3)
+
+with c1:
     st.markdown(f"""
-    <div class="metric-card">
-        <div>Precio sugerido</div>
-        <div class="big-text">S/ {precio_sugerido:.2f}</div>
+    <div class="card">
+        <div class="label">Precio sugerido</div>
+        <div class="metric highlight">S/ {precio_sugerido:.2f}</div>
     </div>
     """, unsafe_allow_html=True)
 
-with col2:
+with c2:
     st.markdown(f"""
-    <div class="metric-card">
-        <div>Ganancia mensual</div>
-        <div class="big-text">S/ {ganancia_sugerida:.2f}</div>
+    <div class="card">
+        <div class="label">Ganancia estimada</div>
+        <div class="metric">S/ {ganancia_sugerida:.2f}</div>
     </div>
     """, unsafe_allow_html=True)
 
-with col3:
-    ganancia_unitaria = precio_sugerido - costo
+with c3:
     st.markdown(f"""
-    <div class="metric-card">
-        <div>Ganancia por unidad</div>
-        <div class="big-text">S/ {ganancia_unitaria:.2f}</div>
+    <div class="card">
+        <div class="label">Ganancia por unidad</div>
+        <div class="metric">S/ {ganancia_unitaria:.2f}</div>
     </div>
     """, unsafe_allow_html=True)
 
-# ANÁLISIS INTELIGENTE
-st.header("🧠 Análisis")
+# MENSAJE INTELIGENTE
+st.markdown("## 🧠 Decisión inteligente")
 
 if diferencia > 0:
     st.markdown(f"""
     <div class="warning">
-    ⚠️ Estás dejando de ganar <b>S/ {abs(diferencia):.2f}</b> al mes con tu precio actual.<br><br>
-    👉 Recomendación: Ajusta tu precio a <b>S/ {precio_sugerido:.2f}</b> para mejorar tu rentabilidad.
+    ⚠️ Estás dejando de ganar <b>S/ {abs(diferencia):.2f}</b> en {dias} días.<br><br>
+    👉 Subir tu precio a <b>S/ {precio_sugerido:.2f}</b> podría mejorar tu negocio.
     </div>
     """, unsafe_allow_html=True)
 
 elif diferencia < 0:
     st.markdown(f"""
     <div class="success">
-    ✅ Estás ganando <b>S/ {abs(diferencia):.2f}</b> más al mes que el precio sugerido.<br><br>
-    ⚠️ Pero cuidado: un precio alto podría reducir tus ventas.
+    ✅ Estás ganando más que el promedio (+S/ {abs(diferencia):.2f}).<br><br>
+    💡 Pero revisa si tu precio afecta tus ventas.
     </div>
     """, unsafe_allow_html=True)
 
 else:
-    st.success("✔️ Tu precio ya está optimizado.")
+    st.success("Tu precio está perfectamente optimizado.")
 
-# INSIGHT DE NEGOCIO (esto vende)
-st.header("🚀 Insight estratégico")
+# SIMULADOR EXTRA (esto sube MUCHO el valor)
+st.markdown("## 🔬 Simulación de escenarios")
 
-if precio_actual > precio_sugerido:
-    st.info("Tu precio es alto. Podrías estar perdiendo clientes aunque ganes más por unidad.")
-elif precio_actual < precio_sugerido:
-    st.info("Tu precio es bajo. Estás sacrificando rentabilidad.")
-else:
-    st.info("Tu precio está bien equilibrado.")
+nuevo_precio = st.slider("Prueba otro precio", float(costo), float(precio_actual * 2), float(precio_actual))
 
-# MINI GRÁFICO (simple pero poderoso)
-st.header("📈 Comparación")
+ganancia_test = (nuevo_precio - costo) * unidades * dias
 
-import pandas as pd
+st.metric("Ganancia con este precio", f"S/ {ganancia_test:.2f}")
+
+# GRÁFICO
+st.markdown("## 📈 Comparación visual")
 
 data = pd.DataFrame({
-    "Escenario": ["Actual", "Sugerido"],
-    "Ganancia": [ganancia_actual, ganancia_sugerida]
+    "Escenario": ["Actual", "Sugerido", "Simulado"],
+    "Ganancia": [ganancia_actual, ganancia_sugerida, ganancia_test]
 })
 
 st.bar_chart(data.set_index("Escenario"))
 
-# CTA (esto es CLAVE para vender)
+# CIERRE (VENTA)
 st.markdown("---")
-st.markdown("### 🔥 ¿Quieres llevar tu negocio al siguiente nivel?")
-st.markdown("""
-- Predicción de ventas con IA  
-- Recomendación automática de precios  
-- Análisis de competencia  
-- Guardado de datos y reportes  
+st.markdown("## 🚀 Lleva tu negocio al siguiente nivel")
 
-👉 Próximamente versión PRO
+st.markdown("""
+🔓 **Versión PRO incluirá:**
+- Predicción automática de ventas con IA  
+- Recomendación dinámica de precios  
+- Historial y seguimiento  
+- Reportes descargables  
+
+💰 Ideal para emprendedores que quieren crecer rápido.
 """)
